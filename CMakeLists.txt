@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+project( Dip1 )
+find_package( OpenCV REQUIRED )
+add_executable( Dip1 Dip1.cpp main.cpp)
+target_link_libraries( Dip1 ${OpenCV_LIBS} )
