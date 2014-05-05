@@ -24,47 +24,47 @@ Mat Dip1::doSomethingThatMyTutorIsGonnaLike(Mat& img){
 
 	//densing the brightness distribution to the extremas
 	//"bigger contrast"
-  	for(x=0;x<cols;x++){
-  		for(y=0;y<rows;y++){
-	  		if(retImg.ptr<uchar>(x)[y]<128){
+  	for (x = 0; x < cols; x++) {
+  		for (y = 0; y < rows; y++) {
+	  		if (retImg.ptr<uchar>(x)[y] < 128) {
   				retImg.ptr<uchar>(x)[y]=retImg.ptr<uchar>(x)[y]/2;
-  			}else{
+  			} else {
 				retImg.ptr<uchar>(x)[y]=retImg.ptr<uchar>(x)[y]/2+128;
   			}
   		}
   	}
 
   	//pixelation
-  	for(x=0;x<cols;){
-  		for(y=0;y<rows;){
+  	for (x = 0; x < cols;) {
+  		for (y = 0; y < rows;) {
 			retImg.ptr<uchar>(x+1)[y]=retImg.ptr<uchar>(x)[y];
 			retImg.ptr<uchar>(x)[y+1]=retImg.ptr<uchar>(x)[y];
 			retImg.ptr<uchar>(x+1)[y+1]=retImg.ptr<uchar>(x)[y];
 
-  			y=y+2;
+  			y += 2;
   		}
-  		x=x+2;
+  		x += 2;
   	}
 
 	//salt and pepper noise
-  	for(x=0;x<cols;){
-  		for(y=0;y<rows;){
-			if(rand()%50<1){
-				if(rand()%1){
+  	for (x = 0; x < cols;) {
+  		for (y = 0; y < rows ;) {
+			if (rand() % 50 < 1) {
+				if (rand() % 1) {
 					retImg.ptr<uchar>(x)[y]=0;
 					retImg.ptr<uchar>(x+1)[y]=0;
 					retImg.ptr<uchar>(x)[y+1]=0;
 					retImg.ptr<uchar>(x+1)[y+1]=0;
-  				}else{
+  				} else {
   					retImg.ptr<uchar>(x)[y]=255;
   					retImg.ptr<uchar>(x+1)[y]=255;
   					retImg.ptr<uchar>(x)[y+1]=255;
   					retImg.ptr<uchar>(x+1)[y+1]=255;
   				}
   			}
-  			y=y+2;
+  			y += 2;
   		}
-  		x=x+2;
+  		x += 2;
   	}
 
 	return retImg;
