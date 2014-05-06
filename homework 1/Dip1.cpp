@@ -8,66 +8,75 @@
 
 #include "Dip1.h"
 
+using namespace std;
+
 // function that performs some kind of (simple) image processing
 /*
-img	input image
-return	output image
+img input image
+return  output image
 */
 Mat Dip1::doSomethingThatMyTutorIsGonnaLike(Mat& img){
-  	Mat retImg;
-  	//converting to grayscale image
-  	cvtColor(img, retImg, CV_RGB2GRAY);
-  	int cols = retImg.cols;
-  	int rows = retImg.rows;
-  	int x;
-  	int y;
+	
+	Mat retImg;
+	
+	//converting to grayscale image
+	cvtColor(img, retImg, CV_RGB2GRAY);
 
-	//densing the brightness distribution to the extremas
-	//"bigger contrast"
-  	for (x = 0; x < cols; x++) {
-  		for (y = 0; y < rows; y++) {
-	  		if (retImg.ptr<uchar>(x)[y] < 128) {
-  				retImg.ptr<uchar>(x)[y]=retImg.ptr<uchar>(x)[y]/2;
-  			} else {
-				retImg.ptr<uchar>(x)[y]=retImg.ptr<uchar>(x)[y]/2+128;
-  			}
-  		}
-  	}
+	// densing the brightness distribution to the extremas
+	// "bigger contrast"
+	auto biggerContrast = [](Mat img) -> Mat {
+		
+		for (int x = 0; x < img.cols; x++) {
+			for (int y = 0; y < img.rows; y++) {
+				if (img.ptr<uchar>(x)[y] < 128) {
+					img.ptr<uchar>(x)[y] = img.ptr<uchar>(x)[y]/2;
+				} else {
+					img.ptr<uchar>(x)[y] = img.ptr<uchar>(x)[y]/2 + 128;
+				}
+			}
+		}
 
-  	//pixelation
-  	for (x = 0; x < cols;) {
-  		for (y = 0; y < rows;) {
-			retImg.ptr<uchar>(x+1)[y]=retImg.ptr<uchar>(x)[y];
-			retImg.ptr<uchar>(x)[y+1]=retImg.ptr<uchar>(x)[y];
-			retImg.ptr<uchar>(x+1)[y+1]=retImg.ptr<uchar>(x)[y];
+		return img;
+	};
 
-  			y += 2;
-  		}
-  		x += 2;
-  	}
+	// pixelation
+	auto pixelate = [](Mat img) -> Mat {
+		
+		for (int x = 0; x < img.cols; x += 2) {
+			for (int y = 0; y < img.rows; y += 2) {
+				img.ptr<uchar>(x+1)[y] = img.ptr<uchar>(x)[y];
+				img.ptr<uchar>(x)[y+1] = img.ptr<uchar>(x)[y];
+				img.ptr<uchar>(x+1)[y+1] = img.ptr<uchar>(x)[y];
+			}
+		}
 
-	//salt and pepper noise
-  	for (x = 0; x < cols;) {
-  		for (y = 0; y < rows ;) {
-			if (rand() % 50 < 1) {
-				if (rand() % 1) {
-					retImg.ptr<uchar>(x)[y]=0;
-					retImg.ptr<uchar>(x+1)[y]=0;
-					retImg.ptr<uchar>(x)[y+1]=0;
-					retImg.ptr<uchar>(x+1)[y+1]=0;
-  				} else {
-  					retImg.ptr<uchar>(x)[y]=255;
-  					retImg.ptr<uchar>(x+1)[y]=255;
-  					retImg.ptr<uchar>(x)[y+1]=255;
-  					retImg.ptr<uchar>(x+1)[y+1]=255;
-  				}
-  			}
-  			y += 2;
-  		}
-  		x += 2;
-  	}
+		return img;
+	};
 
-	return retImg;
+	// salt and pepper noise
+	auto saltAndPepper = [](Mat img) -> Mat {
+		for (int x = 0; x < img.cols; x += 2) {
+			for (int y = 0; y < img.rows; y += 2) {
+				if (rand() % 50 < 1) {
+					if (rand() % 2) {
+						img.ptr<uchar>(x)[y] = 0;
+						img.ptr<uchar>(x+1)[y] = 0;
+						img.ptr<uchar>(x)[y+1] = 0;
+						img.ptr<uchar>(x+1)[y+1] = 0;
+					} else {
+						img.ptr<uchar>(x)[y] = 255;
+						img.ptr<uchar>(x+1)[y] = 255;
+						img.ptr<uchar>(x)[y+1] = 255;
+						img.ptr<uchar>(x+1)[y+1] = 255;
+					}
+				}
+			}
+		}
+
+		return img;
+	};
+
+	return saltAndPepper(pixelate(biggerContrast(retImg)));
 }
 
 /* *****************************
@@ -76,7 +85,7 @@ Mat Dip1::doSomethingThatMyTutorIsGonnaLike(Mat& img){
 
 // function loads input image, calls processing function, and saves result
 /*
-fname	path to input image
+fname   path to input image
 */
 void Dip1::run(string fname){
 
@@ -94,8 +103,8 @@ void Dip1::run(string fname){
 	
 	// check if image can be loaded
 	if (!inputImage.data){
-	    cerr << "ERROR: Cannot read file " << fname << endl;
-	    exit(-1);
+		cerr << "ERROR: Cannot read file " << fname << endl;
+		exit(-1);
 	}
 
 	// show input image
@@ -120,7 +129,7 @@ void Dip1::run(string fname){
 // function loads input image and calls processing function
 // output is tested on "correctness" 
 /*
-fname	path to input image
+fname   path to input image
 */
 void Dip1::test(string fname){
 
@@ -132,8 +141,8 @@ void Dip1::test(string fname){
 
 	// check if image can be loaded
 	if (!inputImage.data){
-	    cerr << "ERROR: Cannot read file " << fname << endl;
-	    exit(-1);
+		cerr << "ERROR: Cannot read file " << fname << endl;
+		exit(-1);
 	}
 
 	// create output
@@ -146,8 +155,8 @@ void Dip1::test(string fname){
 // function loads input image and calls processing function
 // output is tested on "correctness" 
 /*
-inputImage	input image as used by doSomethingThatMyTutorIsGonnaLike()
-outputImage	output image as created by doSomethingThatMyTutorIsGonnaLike()
+inputImage  input image as used by doSomethingThatMyTutorIsGonnaLike()
+outputImage output image as created by doSomethingThatMyTutorIsGonnaLike()
 */
 void Dip1::test_doSomethingThatMyTutorIsGonnaLike(Mat& inputImage, Mat& outputImage){
 
