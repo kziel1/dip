@@ -22,58 +22,74 @@ Mat Dip1::doSomethingThatMyTutorIsGonnaLike(Mat& img){
 	//converting to grayscale image
 	cvtColor(img, retImg, CV_RGB2GRAY);
 
-	// densing the brightness distribution to the extremas
-	// "bigger contrast"
-	auto biggerContrast = [](Mat img) -> Mat {
+	// iterate over an openCV Mat and apply given function on every x/y step
+	auto forEachMat = [](Mat img, int xstep, int ystep, function<Mat (Mat img, int x, int y)> func) -> Mat {
 		
-		for (int x = 0; x < img.cols; x++) {
-			for (int y = 0; y < img.rows; y++) {
-				if (img.ptr<uchar>(x)[y] < 128) {
-					img.ptr<uchar>(x)[y] = img.ptr<uchar>(x)[y]/2;
-				} else {
-					img.ptr<uchar>(x)[y] = img.ptr<uchar>(x)[y]/2 + 128;
-				}
+		for (int x = 0; x < img.cols; x+=xstep) {
+			for (int y = 0; y < img.rows; y+=ystep) {
+				func(img, x, y);
 			}
 		}
 
 		return img;
+	};
+
+	// densing the brightness distribution to the extremas
+	// "bigger contrast"
+	auto biggerContrast = [forEachMat](Mat img) -> Mat {
+		
+		auto process = [](Mat img, int x, int y) -> Mat {
+			
+			if (img.ptr<uchar>(x)[y] < 128) {
+				img.ptr<uchar>(x)[y] = img.ptr<uchar>(x)[y]/2;
+			} else {
+				img.ptr<uchar>(x)[y] = img.ptr<uchar>(x)[y]/2 + 128;
+			}
+
+			return img;
+		};
+
+		return forEachMat(img, 1, 1, process);
 	};
 
 	// pixelation
-	auto pixelate = [](Mat img) -> Mat {
+	auto pixelate = [forEachMat](Mat img) -> Mat {
 		
-		for (int x = 0; x < img.cols; x += 2) {
-			for (int y = 0; y < img.rows; y += 2) {
-				img.ptr<uchar>(x+1)[y] = img.ptr<uchar>(x)[y];
-				img.ptr<uchar>(x)[y+1] = img.ptr<uchar>(x)[y];
-				img.ptr<uchar>(x+1)[y+1] = img.ptr<uchar>(x)[y];
-			}
-		}
+		auto process = [](Mat img, int x, int y) -> Mat {
+			
+			img.ptr<uchar>(x+1)[y] = img.ptr<uchar>(x)[y];
+			img.ptr<uchar>(x)[y+1] = img.ptr<uchar>(x)[y];
+			img.ptr<uchar>(x+1)[y+1] = img.ptr<uchar>(x)[y];
 
-		return img;
+			return img;
+		};
+
+		return forEachMat(img, 2, 2, process);
 	};
 
 	// salt and pepper noise
-	auto saltAndPepper = [](Mat img) -> Mat {
-		for (int x = 0; x < img.cols; x += 2) {
-			for (int y = 0; y < img.rows; y += 2) {
-				if (rand() % 50 < 1) {
-					if (rand() % 2) {
-						img.ptr<uchar>(x)[y] = 0;
-						img.ptr<uchar>(x+1)[y] = 0;
-						img.ptr<uchar>(x)[y+1] = 0;
-						img.ptr<uchar>(x+1)[y+1] = 0;
-					} else {
-						img.ptr<uchar>(x)[y] = 255;
-						img.ptr<uchar>(x+1)[y] = 255;
-						img.ptr<uchar>(x)[y+1] = 255;
-						img.ptr<uchar>(x+1)[y+1] = 255;
-					}
+	auto saltAndPepper = [forEachMat](Mat img) -> Mat {
+		
+		auto process = [](Mat img, int x, int y) -> Mat {
+			
+			if (rand() % 50 < 1) {
+				if (rand() % 2) {
+					img.ptr<uchar>(x)[y] = 0;
+					img.ptr<uchar>(x+1)[y] = 0;
+					img.ptr<uchar>(x)[y+1] = 0;
+					img.ptr<uchar>(x+1)[y+1] = 0;
+				} else {
+					img.ptr<uchar>(x)[y] = 255;
+					img.ptr<uchar>(x+1)[y] = 255;
+					img.ptr<uchar>(x)[y+1] = 255;
+					img.ptr<uchar>(x+1)[y+1] = 255;
 				}
 			}
-		}
 
-		return img;
+			return img;
+		};
+
+		return forEachMat(img, 1, 1, process);
 	};
 
 	return saltAndPepper(pixelate(biggerContrast(retImg)));
