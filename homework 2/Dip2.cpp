@@ -8,6 +8,20 @@
 
 #include "Dip2.h"
 
+Mat Dip2::forEachMat(Mat& orig, int xstep, int ystep, function<Mat (Mat orig, Mat copy, int x, int y)> func) {
+    
+  Mat copy = orig.clone();
+
+  for (int x = 0; x < orig.cols; x += xstep) {
+    for (int y = 0; y < orig.rows; y += ystep) {
+      func(orig, copy, x, y);
+    }
+  }
+
+  return copy;
+
+};
+
 // convolution in spatial domain
 /*
 src:     input image
@@ -16,24 +30,9 @@ return:  convolution result
 */
 Mat Dip2::spatialConvolution(Mat& src, Mat& kernel){
   
-  // iterate over an openCV Mat and apply given function on every x/y step
-  auto forEachMat = [](Mat orig, int xstep, int ystep, function<Mat (Mat orig, Mat copy, int x, int y)> func) -> Mat {
-    
-    Mat copy = orig.clone();
-
-    for (int x = 0; x < orig.cols; x += xstep) {
-      for (int y = 0; y < orig.rows; y += ystep) {
-        func(orig, copy, x, y);
-      }
-    }
-
-    return copy;
-
-  };
-
   auto convolution = [kernel](Mat orig, Mat copy, int x, int y) -> Mat {
 
-    Mat defaultMat = Mat::zeros(kernel.rows, kernel.cols, CV_32FC1);
+    Mat defaultMat = Mat::ones(kernel.rows, kernel.cols, CV_32FC1);
 
     int center = kernel.rows/2;
 
@@ -57,8 +56,10 @@ Mat Dip2::spatialConvolution(Mat& src, Mat& kernel){
     return copy;
 
   };
+  
+  Mat copy = src.clone();
 
-  Mat result = forEachMat(src.clone(), 1, 1, convolution);
+  Mat result = forEachMat(copy, 1, 1, convolution);
 
   return result;
 
@@ -75,8 +76,8 @@ Mat Dip2::averageFilter(Mat& src, int kSize){
 
    Mat kernel = Mat(kSize, kSize, CV_32FC1, 1.0/(kSize * kSize));
    Mat copy = src.clone();
-   // TO DO !!
    Mat result = spatialConvolution(copy, kernel);
+
    return result;
 
 }
@@ -90,9 +91,24 @@ threshold:  threshold value on differences in order to decide which average to u
 return:     filtered image
 */
 Mat Dip2::adaptiveFilter(Mat& src, int kSize, double threshold){
-     
-   // TO DO !!
-   return src.clone();
+
+   Mat average = averageFilter(src, kSize);
+
+   auto adaptive = [threshold, average, src](Mat orig, Mat copy, int x, int y) -> Mat {
+
+    if (abs(src.at<float>(x, y) - average.at<float>(x, y)) > threshold) {
+      copy.at<float>(x, y) = src.at<float>(x, y);
+    } else {
+      copy.at<float>(x, y) = average.at<float>(x, y);
+    };
+
+    return copy;
+   
+   };
+
+   Mat result = forEachMat(average, 1, 1, adaptive);
+
+   return result;
 
 }
 
