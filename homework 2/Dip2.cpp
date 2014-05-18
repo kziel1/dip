@@ -103,10 +103,21 @@ kSize:   window size used by median operation
 return:  filtered image
 */
 Mat Dip2::medianFilter(Mat& src, int kSize){
-
-   // TO DO !!
-   return src.clone();
-
+  const clock_t begin_time = clock();
+  Mat out(src.rows, src.cols, CV_32FC1);
+  int k2=kSize*kSize;
+  int array[k2];
+  for(int y=kSize/2;y<src.cols-kSize/2;y++){
+    for(int x=kSize/2;x<src.rows-kSize/2;x++){
+      for(int k=0;k<k2;k++){
+        array[k]=src.at<float>(y-1+k/kSize,x-1+k%kSize);
+        std::sort(array, array+k2);
+        out.at<float>(y,x)=array[k2/2];
+      }
+    }
+  }
+  std::cout << float( clock () - begin_time ) /  CLOCKS_PER_SEC;
+  return out;
 }
 
 // the bilateral filter
