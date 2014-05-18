@@ -58,7 +58,9 @@ Mat Dip2::spatialConvolution(Mat& src, Mat& kernel){
 
   };
 
-  return forEachMat(src.clone(), 1, 1, convolution);
+  Mat result = forEachMat(src.clone(), 1, 1, convolution);
+
+  return result;
 
 }
 
@@ -70,9 +72,12 @@ kSize:   window size used by local average
 return:  filtered image
 */
 Mat Dip2::averageFilter(Mat& src, int kSize){
-  
+
+   Mat kernel = Mat(kSize, kSize, CV_32FC1, 1.0/(kSize * kSize));
+   Mat copy = src.clone();
    // TO DO !!
-   return src.clone();
+   Mat result = spatialConvolution(copy, kernel);
+   return result;
 
 }
 
