@@ -15,9 +15,50 @@ kernel:  filter kernel
 return:  convolution result
 */
 Mat Dip2::spatialConvolution(Mat& src, Mat& kernel){
+  
+  // iterate over an openCV Mat and apply given function on every x/y step
+  auto forEachMat = [](Mat orig, int xstep, int ystep, function<Mat (Mat orig, Mat copy, int x, int y)> func) -> Mat {
+    
+    Mat copy = orig.clone();
 
-   // TO DO !!
-   return src.clone();
+    for (int x = 0; x < orig.cols; x += xstep) {
+      for (int y = 0; y < orig.rows; y += ystep) {
+        func(orig, copy, x, y);
+      }
+    }
+
+    return copy;
+
+  };
+
+  auto convolution = [kernel](Mat orig, Mat copy, int x, int y) -> Mat {
+
+    Mat defaultMat = Mat::zeros(kernel.rows, kernel.cols, CV_32FC1);
+
+    int center = kernel.rows/2;
+
+    // border handling using default values
+    for (int i = 0; i < kernel.rows; i++) {
+      for (int j = 0; j < kernel.cols; j++) {
+        if ((x + i) >= center && (x + i) < (orig.rows + center) &&
+            (y + j) >= center && (y + j) < (orig.cols + center)) {
+          defaultMat.at<float>(i, j) = orig.at<float>(x + i - center, y + j - center);
+        }
+      }
+    }
+
+    Mat flippedKernel;
+    flip(kernel, flippedKernel, -1);
+
+    float result = sum(defaultMat.dot(flippedKernel)).val[0];
+
+    copy.at<float>(x, y) = result;
+
+    return copy;
+
+  };
+
+  return forEachMat(src.clone(), 1, 1, convolution);
 
 }
 
@@ -222,12 +263,12 @@ void Dip2::generateNoisyImages(string fname){
 void Dip2::test(void){
 
 	test_spatialConvolution();
-   test_averageFilter();
-   test_medianFilter();
-   test_adaptiveFilter();
+  test_averageFilter();
+  test_medianFilter();
+  test_adaptiveFilter();
 
-   cout << "Press enter to continue"  << endl;
-   cin.get();
+  cout << "Press enter to continue"  << endl;
+  cin.get();
 
 }
 
