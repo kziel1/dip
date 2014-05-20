@@ -93,11 +93,12 @@ return:     filtered image
 Mat Dip2::adaptiveFilter(Mat& src, int kSize, double threshold){
 
    Mat average = averageFilter(src, kSize);
+   Mat average3 = averageFilter(src, 3);
 
-   auto adaptive = [threshold, average, src](Mat orig, Mat copy, int x, int y) -> Mat {
+   auto adaptive = [threshold, average, average3](Mat orig, Mat copy, int x, int y) -> Mat {
 
-    if (abs(src.at<float>(x, y) - average.at<float>(x, y)) > threshold) {
-      copy.at<float>(x, y) = src.at<float>(x, y);
+    if (abs(average3.at<float>(x, y) - average.at<float>(x, y)) > threshold) {
+      copy.at<float>(x, y) = average3.at<float>(x, y);
     } else {
       copy.at<float>(x, y) = average.at<float>(x, y);
     };
@@ -184,8 +185,8 @@ void Dip2::run(void){
 	// ==> "average" or "median"? Why?
 	// ==> try also "adaptive" (and if implemented "bilateral")
 	cout << "reduce noise" << endl;
-	Mat restorated1 = noiseReduction(noise1, "", 1);
-	Mat restorated2 = noiseReduction(noise2, "", 1);
+	Mat restorated1 = noiseReduction(noise1, "adaptive", 10, 60);
+	Mat restorated2 = noiseReduction(noise2, "adaptive", 10, 60);
 	cout << "done" << endl;
 	  
 	// save images

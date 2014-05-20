@@ -32,6 +32,8 @@ class Dip2{
       // function headers of functions to be implemented
       // --> edit ONLY these functions!
       // performs spatial convolution of image and filter kernel
+      Mat forEachMat(Mat& orig, int xstep, int ystep, function<Mat (Mat orig, Mat copy, int x, int y)> func);
+
       Mat spatialConvolution(Mat&, Mat&);
       // moving average filter (aka box filter)
       Mat averageFilter(Mat& src, int kSize);
