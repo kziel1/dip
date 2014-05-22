@@ -185,8 +185,8 @@ void Dip2::run(void){
 	// ==> "average" or "median"? Why?
 	// ==> try also "adaptive" (and if implemented "bilateral")
 	cout << "reduce noise" << endl;
-	Mat restorated1 = noiseReduction(noise1, "adaptive", 10, 60);
-	Mat restorated2 = noiseReduction(noise2, "adaptive", 10, 60);
+	Mat restorated1 = noiseReduction(noise1, "median", 10, 60);
+	Mat restorated2 = noiseReduction(noise2, "median", 10, 60);
 	cout << "done" << endl;
 	  
 	// save images
