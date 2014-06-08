@@ -52,9 +52,26 @@ return   circular shifted matrix
 */
 Mat Dip3::circShift(Mat& in, int dx, int dy){
 
-   // TO DO !!!
+   // sanitze input
+   
+   dx = dx % in.cols;
+   dy = dy % in.rows;
 
-   return in;
+   Mat out = Mat::zeros(in.rows, in.cols, CV_32FC1);
+
+   for (int x = 0; x < out.rows; x++) for (int y = 0; y < out.cols; y++) {
+      
+      int newX = (x + dx) % out.cols;
+      int newY = (y + dy) % out.rows;
+      
+      newX = newX < 0 ? out.cols + newX : newX;
+      newY = newY < 0 ? out.rows + newY : newY;
+      out.at<float>(newX, newY) = in.at<float>(x, y);
+
+   };
+
+   return out;
+
 }
 
 //Performes a convolution by multiplication in frequency domain
