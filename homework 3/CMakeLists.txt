@@ -1,0 +1,6 @@
+cmake_minimum_required(VERSION 2.8)
+project( Dip3 )
+find_package( OpenCV REQUIRED )
+add_executable( Dip3 Dip3.cpp main.cpp)
+target_link_libraries( Dip3 ${OpenCV_LIBS} )
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
