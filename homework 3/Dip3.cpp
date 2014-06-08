@@ -14,10 +14,32 @@ kSize:     kernel size (used to calculate standard deviation)
 return:    the generated filter kernel
 */
 Mat Dip3::createGaussianKernel(int kSize){
+   
+   float sigma = 0.3 * ((kSize - 1) * 0.5 - 1) + 0.8;
+   int mean = kSize/2;
+   Mat kernel = Mat::zeros(kSize, kSize, CV_32FC1);
+   float sum = 0;
 
-   // TO DO !!!
+   for (int x = 0; x < kSize; x++) for (int y = 0; y < kSize; y++) {
+      
+      float scale = 1/(2 * M_PI * sigma * sigma);
+      float e = -0.5 * (pow((x - mean)/sigma, 2.0) + pow((y - mean)/sigma, 2.0));
+      float gaussXY =  scale * exp(e);
 
-   return Mat::zeros(3,3,CV_32FC1);
+      sum += gaussXY;
+
+      kernel.at<float>(x, y) = gaussXY;
+   
+   }
+
+
+   // normalize kernel
+
+   for (int x = 0; x < kSize; x++) for (int y = 0; y < kSize; y++) {
+      kernel.at<float>(x, y) = (kernel.at<float>(x, y)/sum);
+   }
+
+   return kernel;
 }
 
 
@@ -133,9 +155,9 @@ Mat Dip3::mySmooth(Mat& in, int size, bool spatial){
  
    // perform convoltion
    if (spatial)
-   return spatialConvolution(in, kernel);
+      return spatialConvolution(in, kernel);
    else
-   return frequencyConvolution(in, kernel);
+      return frequencyConvolution(in, kernel);
    
 }
 
