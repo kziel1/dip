@@ -82,9 +82,21 @@ return   output image
 */
 Mat Dip3::frequencyConvolution(Mat& in, Mat& kernel){
 
-   // TO DO !!!
+   Mat tempA = Mat::zeros(in.rows, in.cols, CV_32FC1);
+   Mat tempB = Mat::zeros(in.rows, in.cols, CV_32FC1);
+   
+   for (int x = 0; x < kernel.rows; x++) for (int y = 0; y < kernel.cols; y++) {
+      tempB.at<float>(x, y) = kernel.at<float>(x, y);
+   }
+   
+   tempB = circShift(tempB, -1, -1);
 
-   return in;
+   dft(in, tempA, 0);
+   dft(tempB, tempB, 0);
+   mulSpectrums(tempA, tempB, tempB, 0);
+   dft(tempB, tempA, DFT_INVERSE + DFT_SCALE);
+
+   return tempA;
 }
 
 // Performs UnSharp Masking to enhance fine image structures
