@@ -129,7 +129,14 @@ Mat Dip3::usm(Mat& in, int type, int size, double thresh, double scale){
          GaussianBlur(in, tmp, Size(floor(size/2)*2+1, floor(size/2)*2+1), size/5., size/5.);
    }
 
-   // TO DO !!!
+   subtract(in, tmp, tmp);
+
+   for (int x = 0; x < in.rows; x++) for (int y = 0; y < in.cols; y++) {
+      if (tmp.at<float>(x, y) > thresh) {
+        in.at<float>(x, y) = in.at<float>(x, y) + tmp.at<float>(x, y) * scale;
+      }
+   }
+
 
    return in;
 
@@ -153,7 +160,7 @@ Mat Dip3::spatialConvolution(Mat& src, Mat& kernel){
          }
       }
 
-      return img;
+      return copy;
    };
   
   auto convolution = [kernel](Mat orig, Mat copy, int x, int y) -> Mat {
@@ -207,7 +214,8 @@ return   enhanced image
 */
 Mat Dip3::run(Mat& in, int smoothType, int size, double thresh, double scale){
 
-   return usm(in, smoothType, size, thresh, scale);
+   Mat copy = in.clone();
+   return usm(copy, smoothType, size, thresh, scale);
 
 }
 
