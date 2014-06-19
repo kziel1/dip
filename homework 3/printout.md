@@ -137,13 +137,13 @@ Mat Dip3::usm(Mat& in, int type, int size, double thresh, double scale){
 ### Image results
 Here are the examples with a size of 400x400 and a kernel-size of 17
 #### created with spatial convolution
-![](testimage_50.png "original")
-![](testimage_50_USM_17x17_spatialDomain_enhanced.png "spatial convolution, enhanced")
-![](testimage_50_USM_17x17_spatialDomain_diff2original.png "spatial convolution, enhanced")
+![original](testimage_50.png "original")
+![enhanced](testimage_50_USM_17x17_spatialDomain_enhanced.png "spatial convolution, enhanced")
+![difference](testimage_50_USM_17x17_spatialDomain_diff2original.png "spatial convolution, difference")
 #### created frequency with frequency convolution
-![](testimage_50.png "original")
-![](testimage_50_USM_17x17_frequencyDomain_enhanced.png "frequency convolution, enhanced")
-![](testimage_50_USM_17x17_frequencyDomain_diff2original.png "frequency convolution, enhanced")
+![original](testimage_50.png "original")
+![enhanced](testimage_50_USM_17x17_frequencyDomain_enhanced.png "frequency convolution, enhanced")
+![difference](testimage_50_USM_17x17_frequencyDomain_diff2original.png "frequency convolution, differenc")
 
 ### Runtime
 ![Graph for frequency convolution](chart_frequency.png "Graph for frequency convolution")
