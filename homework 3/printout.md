@@ -146,5 +146,6 @@ Here are the examples with a size of 400x400 and a kernel-size of 17
 ![difference](testimage_50_USM_17x17_frequencyDomain_diff2original.png "frequency convolution, differenc")
 
 ### Runtime
+What we can see in those graphs, that the runtime is affected by the kernel size when doing spatial convolution, but not in frequency convolution. This is due to the fact, that in frequency convolution the convolution is simple a multiplication of matrices that are always the size of the initial image (the kernel needs to be enlarged to fit the image size). So despite how large we choose the kernel - we always enlarge it to fit the size of the image. In spatial convolution the kernel-size directly affects the size of the matrices that are multiplicated.
 ![Graph for frequency convolution](chart_frequency.png "Graph for frequency convolution")
 ![Graph for spatial convolution](chart_spatial.png "Graph for spatial convolution")
