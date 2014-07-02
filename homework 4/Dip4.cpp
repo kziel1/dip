@@ -82,7 +82,7 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
   Mat Im = planes[1];
   
   // calculate Threshold
-  double thresholdFactor = 0.25, threshold;
+  double thresholdFactor = 0.2, threshold;
   double max = 0;
 
   Re.copyTo(tempA);
@@ -95,10 +95,12 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
 
   for (int x = 0; x < filterFreq.rows; x++) for (int y = 0; y < filterFreq.cols; y++) {
 
-      if (Re.at<float>(x, y) > threshold) {
+      if (Re.at<float>(x, y) >= threshold) {
 
         float realsq = Re.at<float>(x, y) * Re.at<float>(x, y);
         float imsq = Im.at<float>(x, y) * Im.at<float>(x, y);
+
+        // complex numbers need special attention
 
         Re.at<float>(x, y) = Re.at<float>(x, y) / (realsq + imsq);
         Im.at<float>(x, y) = Im.at<float>(x, y) / (realsq + imsq);
@@ -116,7 +118,7 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
 
   Mat original;
 
-  mulSpectrums(degradedFreq, Q, original, 0);
+  mulSpectrums(degradedFreq, Q, original, 1);
   dft(original, original, DFT_INVERSE + DFT_SCALE);
   split(original, planes);
  
