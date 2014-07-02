@@ -47,9 +47,47 @@ return   :  restorated output image
 */
 Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
 
-   // TODO !!!
+  Mat tempA = Mat::zeros(degraded.rows, degraded.cols, CV_32FC1);
+  
+  // O = FFT(s) / Q
+  // Q = ...
+
+  // convert to frequency spectrum
+  Mat degradedFreq = degraded.clone();
+  Mat filterFreq = Mat::zeros(degraded.size(), CV_32F);
+
+  // add Border
+  for (int x = 0; x < filter.rows; x++) for (int y = 0; y < filter.cols; y++) {
+      filterFreq.at<float>(x, y) = filter.at<float>(x, y);
+  }
    
-   return degraded;
+  filterFreq = circShift(filterFreq, -1, -1);
+
+  // transform to complex - no idea what i'm doing here
+  Mat planes[] = {degradedFreq, Mat::zeros(degraded.size(), CV_32F)};
+  Mat planesFilter = {filterFreq, Mat::zeros(filterFreq.size(), CV_32F)};
+  
+  merge(planes, 2, degradedFreq);
+  merge(planesTwo, 2, filterFreq);
+
+  dft(degradedFreq, degradedFreq); // degradedFreq == S
+  dft(filterFreq, filterFreq); // filterFreq == P
+
+  // calculate Threshold
+  float thresholdFactor = 0.05, threshold;
+  double max = 0;
+
+  abs(degradedFreq, tempA);
+  minMaxIdx(tempA, 0, &max, 0, 0, Mat());
+  
+  thresholdFactor * max;
+
+  Mat original = Mat::zeros(degraded.size(), CV_32F);
+
+  divide(degradedFreq, filterFreq, original);
+  dft(original, original, DFT_INVERSE + DFT_SCALE);
+   
+  return original;
 }
 
 // Function applies wiener filter to restorate a degraded image
