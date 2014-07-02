@@ -15,11 +15,28 @@ dx       :  shift in x-direction
 dy       :  shift in y-direction
 return   :  circular shifted matrix
 */
-Mat Dip4::circShift(Mat& in, int dx, int dy){
+Mat Dip3::circShift(Mat& in, int dx, int dy){
 
-   // TODO !!! (Hopefully already done)
-  
-   return in;
+   // sanitze input
+   
+   dx = dx % in.cols;
+   dy = dy % in.rows;
+
+   Mat out = Mat::zeros(in.rows, in.cols, CV_32FC1);
+
+   for (int x = 0; x < out.rows; x++) for (int y = 0; y < out.cols; y++) {
+      
+      int newX = (x + dx) % out.cols;
+      int newY = (y + dy) % out.rows;
+      
+      newX = newX < 0 ? out.cols + newX : newX;
+      newY = newY < 0 ? out.rows + newY : newY;
+      out.at<float>(newX, newY) = in.at<float>(x, y);
+
+   };
+
+   return out;
+
 }
 
 // Function applies inverse filter to restorate a degraded image
