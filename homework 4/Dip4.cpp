@@ -61,7 +61,7 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
       filterFreq.at<float>(x, y) = filter.at<float>(x, y);
   }
    
-  filterFreq = circShift(filterFreq, -1, -1);
+  // filterFreq = circShift(filterFreq, -1, -1);
 
   // transform to complex - no idea what i'm doing here
   Mat planes[] = {degradedFreq, Mat::zeros(degraded.size(), CV_32F)};
@@ -82,20 +82,18 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
   Mat Im = planes[1];
   
   // calculate Threshold
-  double thresholdFactor = 0.05, threshold;
+  double thresholdFactor = 0.25, threshold;
   double max = 0;
 
   Re.copyTo(tempA);
-  abs(Re);
-  minMaxIdx(Re, 0, &max, 0, 0, Mat());
+  abs(tempA);
+  minMaxIdx(tempA, 0, &max, 0, 0, Mat());
 
   cout << "Max: " << max << endl;
   
   threshold = thresholdFactor * max;
 
   for (int x = 0; x < filterFreq.rows; x++) for (int y = 0; y < filterFreq.cols; y++) {
-
-      float v = filterFreq.at<float>(x, y);
 
       if (Re.at<float>(x, y) > threshold) {
 
