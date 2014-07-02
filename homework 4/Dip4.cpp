@@ -70,26 +70,58 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
   merge(planes, 2, degradedFreq);
   merge(planesFilter, 2, filterFreq);
 
-  dft(degradedFreq, degradedFreq); // degradedFreq == S
-  dft(filterFreq, filterFreq); // filterFreq == P
+  dft(degradedFreq, degradedFreq, 0); // degradedFreq == S
+  dft(filterFreq, filterFreq, 0); // filterFreq == P
 
+
+  // create Q
+
+  split(filterFreq, planes);
+
+  Mat Re = planes[0];
+  Mat Im = planes[1];
+  
   // calculate Threshold
-  float thresholdFactor = 0.05, threshold;
+  double thresholdFactor = 0.05, threshold;
   double max = 0;
 
-  degradedFreq.copyTo(tempA);
-  abs(degradedFreq);
-  minMaxIdx(tempA, 0, &max, 0, 0, Mat());
+  Re.copyTo(tempA);
+  abs(Re);
+  minMaxIdx(Re, 0, &max, 0, 0, Mat());
+
+  cout << "Max: " << max << endl;
   
-  thresholdFactor * max;
+  threshold = thresholdFactor * max;
 
-  Mat original = Mat::zeros(degraded.size(), CV_32F);
+  for (int x = 0; x < filterFreq.rows; x++) for (int y = 0; y < filterFreq.cols; y++) {
 
-  divide(degradedFreq, filterFreq, original);
+      float v = filterFreq.at<float>(x, y);
+
+      if (Re.at<float>(x, y) > threshold) {
+
+        float realsq = Re.at<float>(x, y) * Re.at<float>(x, y);
+        float imsq = Im.at<float>(x, y) * Im.at<float>(x, y);
+
+        Re.at<float>(x, y) = Re.at<float>(x, y) / (realsq + imsq);
+        Im.at<float>(x, y) = Im.at<float>(x, y) / (realsq + imsq);
+
+      } else {
+        Re.at<float>(x, y) = 1/threshold;
+        Im.at<float>(x, y) = 1/threshold;
+      }
+
+  }
+  
+  Mat Q = Mat::zeros(filterFreq.size(), CV_32F);
+  
+  merge(planes, 2, Q);
+
+  Mat original;
+
+  mulSpectrums(degradedFreq, Q, original, 0);
   dft(original, original, DFT_INVERSE + DFT_SCALE);
-  // cut of imageniary part
   split(original, planes);
-   
+ 
   return planes[0];
 }
 
