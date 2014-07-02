@@ -15,7 +15,7 @@ dx       :  shift in x-direction
 dy       :  shift in y-direction
 return   :  circular shifted matrix
 */
-Mat Dip3::circShift(Mat& in, int dx, int dy){
+Mat Dip4::circShift(Mat& in, int dx, int dy){
 
    // sanitze input
    
