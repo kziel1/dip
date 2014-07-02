@@ -65,10 +65,10 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
 
   // transform to complex - no idea what i'm doing here
   Mat planes[] = {degradedFreq, Mat::zeros(degraded.size(), CV_32F)};
-  Mat planesFilter = {filterFreq, Mat::zeros(filterFreq.size(), CV_32F)};
+  Mat planesFilter[] = {filterFreq, Mat::zeros(filterFreq.size(), CV_32F)};
   
   merge(planes, 2, degradedFreq);
-  merge(planesTwo, 2, filterFreq);
+  merge(planesFilter, 2, filterFreq);
 
   dft(degradedFreq, degradedFreq); // degradedFreq == S
   dft(filterFreq, filterFreq); // filterFreq == P
@@ -77,7 +77,8 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
   float thresholdFactor = 0.05, threshold;
   double max = 0;
 
-  abs(degradedFreq, tempA);
+  degradedFreq.copyTo(tempA);
+  abs(degradedFreq);
   minMaxIdx(tempA, 0, &max, 0, 0, Mat());
   
   thresholdFactor * max;
@@ -86,8 +87,10 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
 
   divide(degradedFreq, filterFreq, original);
   dft(original, original, DFT_INVERSE + DFT_SCALE);
+  // cut of imageniary part
+  split(original, planes);
    
-  return original;
+  return planes[0];
 }
 
 // Function applies wiener filter to restorate a degraded image
