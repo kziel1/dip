@@ -134,10 +134,108 @@ return   :   restorated output image
 */
 Mat Dip4::wienerFilter(Mat& degraded, Mat& filter, double snr){
    
-   // TODO !!!
+     Mat tempA = Mat::zeros(degraded.rows, degraded.cols, CV_32FC1);
+  
+  // O = FFT(s) / Q
+  // Q = ...
+
+  // convert to frequency spectrum
+  Mat degradedFreq = degraded.clone();
+  Mat filterFreq = Mat::zeros(degraded.size(), CV_32F);
+
+  // add Border
+  for (int x = 0; x < filter.rows; x++) for (int y = 0; y < filter.cols; y++) {
+      filterFreq.at<float>(x, y) = filter.at<float>(x, y);
+  }
+   
+  // filterFreq = circShift(filterFreq, -1, -1);
+
+  // transform to complex - no idea what i'm doing here
+  Mat planes[] = {degradedFreq, Mat::zeros(degraded.size(), CV_32F)};
+  Mat planesFilter[] = {filterFreq, Mat::zeros(filterFreq.size(), CV_32F)};
+  
+  merge(planes, 2, degradedFreq);
+  merge(planesFilter, 2, filterFreq);
+
+  dft(degradedFreq, degradedFreq, 0); // degradedFreq == S
+  dft(filterFreq, filterFreq, 0); // filterFreq == P
+
+
+  // create Q
+
+  split(filterFreq, planes);
+
+  Mat Re = planes[0];
+  Mat Im = planes[1];
+  
+  // calculate Threshold
+  double thresholdFactor = 0.2, threshold;
+  double max = 0;
+
+  Re.copyTo(tempA);
+  abs(tempA);
+  minMaxIdx(tempA, 0, &max, 0, 0, Mat());
+
+  cout << "Max: " << max << endl;
+  
+  threshold = thresholdFactor * max;
+
+  for (int x = 0; x < filterFreq.rows; x++) for (int y = 0; y < filterFreq.cols; y++) {
+
+      if (Re.at<float>(x, y) >= threshold) {
+
+        float realsq = Re.at<float>(x, y) * Re.at<float>(x, y);
+        float imsq = Im.at<float>(x, y) * Im.at<float>(x, y);
+
+        // complex numbers need special attention
+
+        Re.at<float>(x, y) = Re.at<float>(x, y) / ((realsq + imsq)+1/(snr*snr));
+        Im.at<float>(x, y) = Im.at<float>(x, y) / ((realsq + imsq)+1/(snr*snr));
+
+      } else {
+        Re.at<float>(x, y) = 1/threshold;
+        Im.at<float>(x, y) = 1/threshold;
+      }
+
+  }
+  
+  Mat Q = Mat::zeros(filterFreq.size(), CV_32F);
+  
+  merge(planes, 2, Q);
+
+  Mat original;
+
+  mulSpectrums(degradedFreq, Q, original, 1);
+  dft(original, original, DFT_INVERSE + DFT_SCALE);
+  split(original, planes);
+ 
+  return planes[0];
 
    return degraded;
+/*
+   //F=(G/H)(|H|^2/(snr+|H|^2))
+   Mat restored = Mat::zeros(degraded.rows, degraded.cols, CV_32FC1);
+   Mat F = Mat::zeros(degraded.rows, degraded.cols, CV_32FC1);
+   Mat G = Mat::zeros(degraded.rows, degraded.cols, CV_32FC1);
+   Mat H = Mat::zeros(degraded.rows, degraded.cols, CV_32FC1);
 
+   dft(degraded,G,0);
+
+   Mat tmp = Mat::zeros(degraded.rows, degraded.cols, CV_32FC1);
+    for (int x = 0; x < filter.rows; x++) for (int y = 0; y < filter.cols; y++) {
+      tmp.at<float>(x, y) = filter.at<float>(x, y);
+   }
+   tmp = circShift(tmp, -1, -1);
+    dft(tmp, H);
+
+
+  cout << degraded.rows << endl << filter.rows << endl << H.rows << endl;
+  
+   //mulSpectrums(G, H, F, 0);
+   //divide(H, G,F);
+
+   dft(G, restored, DFT_INVERSE+DFT_SCALE);
+   return restored;*/
 }
 
 /* *****************************
