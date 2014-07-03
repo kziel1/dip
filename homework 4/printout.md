@@ -15,16 +15,20 @@ Because we wanted to use `C++11`, we added `set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLA
 
 ### Exercices
 The results of the filters do not look like that they are working correctly, I couldn't figure out why.
+
 ![original](original.png "original")
+
 ![degraded](degraded.png "degraded")
+
 ![inverse](restored_inverse.png "inverse")
+
 ![wiener](restored_wiener.png "wiener")
 
 #### inverse filter
 
 ```cpp
 
-// be sure not to touch them
+  // be sure not to touch them
   degraded = degraded.clone();
   filter = filter.clone();
 
