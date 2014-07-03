@@ -136,31 +136,18 @@ Mat Dip4::wienerFilter(Mat& degraded, Mat& filter, double snr){
    
   // Q_k = conjugate_transpose(P_k) / | P_k | ^2  + 1/SNR^2
 
-  Mat filterFreq = Mat::zeros(degraded.size(), CV_32F);
-  Mat degradedFreq = degraded.clone();
-
-  // add Border
-  for (int x = 0; x < filter.rows; x++) for (int y = 0; y < filter.cols; y++) {
-    filterFreq.at<float>(x, y) = filter.at<float>(x, y);
-  }
-
-  // filterFreq = circShift(filterFreq, -1, -1);
-
-  Mat planes[] = {degradedFreq, Mat::zeros(degraded.size(), CV_32F)};
+  Mat filterFreq = filter.clone();
   Mat planesFilter[] = {filterFreq, Mat::zeros(filterFreq.size(), CV_32F)};
-  
-  merge(planes, 2, degradedFreq);
   merge(planesFilter, 2, filterFreq);
-
-  dft(degradedFreq, degradedFreq, DFT_COMPLEX_OUTPUT); // degradedFreq == S
+  
   dft(filterFreq, filterFreq, DFT_COMPLEX_OUTPUT); // filterFreq == P
 
   // create Q
 
-  split(filterFreq, planes);
+  split(filterFreq, planesFilter);
 
-  Mat Re = planes[0];
-  Mat Im = planes[1];
+  Mat Re = planesFilter[0];
+  Mat Im = planesFilter[1];
 
   Mat QRe = Re.clone();
   Mat QIm = Im.clone();
@@ -188,11 +175,13 @@ Mat Dip4::wienerFilter(Mat& degraded, Mat& filter, double snr){
 
   Mat original;
 
-  mulSpectrums(degradedFreq, Q, original, 0);
-  dft(original, original, DFT_INVERSE + DFT_SCALE);
-  split(original, planes);
- 
-  return planes[0];
+  dft(Q, Q, DFT_INVERSE + DFT_SCALE);
+  split(Q, planesFilter);
+  Q = planesFilter[0];
+
+  filter2D(degraded, original, -1, Q);
+
+  return original;
 
 }
 
