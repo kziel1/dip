@@ -47,11 +47,12 @@ return   :  restorated output image
 */
 Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
 
+  // be sure not to touch them
+  degraded = degraded.clone();
+  filter = filter.clone();
+
   Mat tempA = Mat::zeros(degraded.size(), CV_32FC1);
   
-  // O = FFT(s) / Q
-  // Q = ...
-
   // convert to frequency spectrum
   Mat degradedFreq = degraded.clone();
   Mat filterFreq = Mat::zeros(degraded.size(), CV_32F);
@@ -61,9 +62,9 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
     filterFreq.at<float>(x, y) = filter.at<float>(x, y);
   }
    
-  // filterFreq = circShift(filterFreq, -1, -1);
+  filterFreq = circShift(filterFreq, -1, -1);
 
-  // transform to complex - no idea what i'm doing here
+  // transform to complex 
   Mat planes[] = {degradedFreq, Mat::zeros(degraded.size(), CV_32F)};
   Mat planesFilter[] = {filterFreq, Mat::zeros(filterFreq.size(), CV_32F)};
   
@@ -73,7 +74,6 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
   dft(degradedFreq, degradedFreq, DFT_COMPLEX_OUTPUT); // degradedFreq == S
   dft(filterFreq, filterFreq, DFT_COMPLEX_OUTPUT); // filterFreq == P
 
-
   // create Q
 
   split(filterFreq, planes);
@@ -82,14 +82,12 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
   Mat Im = planes[1];
   
   // calculate Threshold
-  double thresholdFactor = 0.2, threshold;
+  double thresholdFactor = 0.5, threshold;
   double max = 0;
 
   Re.copyTo(tempA);
   abs(tempA);
   minMaxIdx(tempA, 0, &max, 0, 0, Mat());
-
-  cout << "Max: " << max << endl;
   
   threshold = thresholdFactor * max;
 
@@ -97,13 +95,13 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
 
     if (Re.at<float>(x, y) >= threshold) {
 
-      float realsq = Re.at<float>(x, y) * Re.at<float>(x, y);
+      float resq = Re.at<float>(x, y) * Re.at<float>(x, y);
       float imsq = Im.at<float>(x, y) * Im.at<float>(x, y);
 
       // complex numbers need special attention
 
-      Re.at<float>(x, y) = Re.at<float>(x, y) / (realsq + imsq);
-      Im.at<float>(x, y) = Im.at<float>(x, y) / (realsq + imsq);
+      Re.at<float>(x, y) = Re.at<float>(x, y) / (resq + imsq);
+      Im.at<float>(x, y) = Im.at<float>(x, y) / (resq + imsq);
 
     } else {
       Re.at<float>(x, y) = 1/threshold;
@@ -121,8 +119,17 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
   mulSpectrums(degradedFreq, Q, original, 1);
   dft(original, original, DFT_INVERSE + DFT_SCALE);
   split(original, planes);
+
+  original = planes[0];
+
+  if (original.channels() == 1) {
+    normalize(original, original, 0, 255, CV_MINMAX);
+    original.convertTo(original, CV_8UC1);
+  } else {
+    original.convertTo(original, CV_8UC3);
+  }
  
-  return planes[0];
+  return original;
 }
 
 // Function applies wiener filter to restorate a degraded image
@@ -133,6 +140,10 @@ snr      :  signal to noise ratio of the input image
 return   :   restorated output image
 */
 Mat Dip4::wienerFilter(Mat& degraded, Mat& filter, double snr){
+
+  // be sure not to touch them
+  degraded = degraded.clone();
+  filter = filter.clone();
    
   // Q_k = conjugate_transpose(P_k) / | P_k | ^2  + 1/SNR^2
 
@@ -155,15 +166,15 @@ Mat Dip4::wienerFilter(Mat& degraded, Mat& filter, double snr){
   for (int x = 0; x < filterFreq.rows; x++) for (int y = 0; y < filterFreq.cols; y++) {
 
     // A*_ij = Ã_ji
-    float ReConjugateTranspose = filterFreq.at<float>(y, x);
-    float ImConjugateTranspose = -filterFreq.at<float>(y, x);
-    float realsq = Re.at<float>(x, y) * Re.at<float>(x, y);
+    float reConjugateTranspose = filterFreq.at<float>(y, x);
+    float imConjugateTranspose = -filterFreq.at<float>(y, x);
+    float resq = Re.at<float>(x, y) * Re.at<float>(x, y);
     float imsq = Im.at<float>(x, y) * Im.at<float>(x, y);
-    float ReAbs = Re.at<float>(x, y) / (realsq + imsq);
-    float ImAbs = Im.at<float>(x, y) / (realsq + imsq);
+    float ReAbs = Re.at<float>(x, y) / (resq + imsq);
+    float ImAbs = Im.at<float>(x, y) / (resq + imsq);
 
-    QRe.at<float>(x, y) = ReConjugateTranspose / (ReAbs * ReAbs + 1/(snr * snr));
-    QIm.at<float>(x, y) = ImConjugateTranspose / (ImAbs * ImAbs + 1/(snr * snr));
+    QRe.at<float>(x, y) = reConjugateTranspose / ((ReAbs * ReAbs) + 1/(snr * snr));
+    QIm.at<float>(x, y) = imConjugateTranspose / ((ImAbs * ImAbs) + 1/(snr * snr));
 
   }
   
@@ -180,6 +191,13 @@ Mat Dip4::wienerFilter(Mat& degraded, Mat& filter, double snr){
   Q = planesFilter[0];
 
   filter2D(degraded, original, -1, Q);
+
+  if (original.channels() == 1) {
+    normalize(original, original, 0, 255, CV_MINMAX);
+    original.convertTo(original, CV_8UC1);
+  } else {
+    original.convertTo(original, CV_8UC3);
+  }
 
   return original;
 
