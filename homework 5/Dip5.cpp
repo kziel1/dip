@@ -9,12 +9,11 @@
 #include "Dip5.h"
 
 // uses structure tensor to define interest points (foerstner)
-void Dip5::getInterestPoints(Mat& img, double sigma, vector<KeyPoint>& points){
-	int kernelSize = (int) ceil(3*sigma) + 1-kernelSize%2;
+void Dip5::getInterestPoints(Mat& img, double sigma, vector<KeyPoint>& points) {
+	int kernelSize = (int) (ceil(3 * sigma) + 1) - (kernelSize % 2);
 	Mat fstdevKernelX =  createFstDevKernel(0);
-	//cout << "fstKernel = "<< endl << " "  << fstdevKernelX << endl << endl;
+	// cout << "fstKernel = "<< endl << " "  << fstdevKernelX << endl << endl;
 	Mat fstdevKernelY =  fstdevKernelX.t();
-	//cout << "fstKernel = "<< endl << " "  << fstdevKernelY << endl << endl;
 	Mat gradientsX;
 	filter2D(img, gradientsX, CV_32FC1, fstdevKernelX) ;
 	// showImage(gradientsX, "asd", 1, true, false);
@@ -22,32 +21,30 @@ void Dip5::getInterestPoints(Mat& img, double sigma, vector<KeyPoint>& points){
 	filter2D(img, gradientsY, CV_32FC1, fstdevKernelY) ;
 	// showImage(gradientsY, "qwe", 0, true, false);
 	Mat structureTensor = Mat::zeros(2,2,CV_32FC1);
-	int i,j;
+	
+	int i, j;
 	Mat plesseyHarrisDetector = Mat::zeros(img.rows,img.cols,CV_32FC1);
-	for(int x=kernelSize;x<img.rows-kernelSize;x++){
- 		for(int y=kernelSize;y<img.cols-kernelSize;y++){
-structureTensor = Mat::zeros(2,2,CV_32FC1);
- 			for(int xw=0;xw<kernelSize/2;xw++){
- 				for(int yw=0;yw<kernelSize;yw++){
- 					i=x+xw-kernelSize/2;
- 					j=y+yw-kernelSize/2;
-					structureTensor.at<float>(0, 0)+=gradientsX.at<float>(i,j)*gradientsX.at<float>(i,j);
- 					structureTensor.at<float>(1, 1)+=gradientsY.at<float>(i,j)*gradientsY.at<float>(i,j);
- 					structureTensor.at<float>(1, 0)+=gradientsX.at<float>(i,j)*gradientsY.at<float>(i,j);
- 				}
- 			}
- 			structureTensor.at<float>(0, 1)=structureTensor.at<float>(1, 0);
-			float structureTensorTrace = sum(trace(structureTensor))[0];
- 			plesseyHarrisDetector.at<float>(x, y)=determinant(structureTensor)-0.04*structureTensorTrace*structureTensorTrace;
- 		}
+	
+	for (int x = kernelSize; x < img.rows - kernelSize; x++) for(int y=kernelSize;y<img.cols-kernelSize;y++) {
+		structureTensor = Mat::zeros(2,2,CV_32FC1);
+		for (int xw = 0; xw < kernelSize / 2; xw++) for(int yw = 0; yw < kernelSize; yw++) {
+			i = x + xw - kernelSize / 2;
+			j = y + yw - kernelSize / 2;
+			structureTensor.at<float>(0, 0) += gradientsX.at<float>(i,j) * gradientsX.at<float>(i,j);
+			structureTensor.at<float>(1, 1) += gradientsY.at<float>(i,j) * gradientsY.at<float>(i,j);
+			structureTensor.at<float>(1, 0) += gradientsX.at<float>(i,j) * gradientsY.at<float>(i,j);
+		}
+		structureTensor.at<float>(0, 1) = structureTensor.at<float>(1, 0);
+		float structureTensorTrace = sum(trace(structureTensor))[0];
+		plesseyHarrisDetector.at<float>(x, y) = determinant(structureTensor) - 0.04 * structureTensorTrace * structureTensorTrace;
  	}
+
  	plesseyHarrisDetector = nonMaxSuppression(plesseyHarrisDetector);
- 	for(int x=kernelSize;x<img.rows-kernelSize;x++){
- 		for(int y=kernelSize;y<img.cols-kernelSize;y++){
-				if(abs(plesseyHarrisDetector.at<float>(x, y))>100000){
- 				points.push_back(KeyPoint(y,x,5));
- 			}
- 		}
+
+ 	for(int x = kernelSize; x < img.rows - kernelSize; x++) for(int y = kernelSize; y < img.cols - kernelSize; y++) {
+		if (abs(plesseyHarrisDetector.at<float>(x, y)) > 100000) {
+			points.push_back(KeyPoint(y,x,5));
+		}
  	}
 }
 

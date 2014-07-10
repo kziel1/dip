@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
    Dip5 dip5(sigma);
    
    // show and safe gray-scale version of original image
-   dip5.showImage( img, "original.png", 0, true, true);
+   // dip5.showImage( img, "original.png", 0, true, true);
 
    // calculate interest points
    vector<KeyPoint> points;
