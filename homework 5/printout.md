@@ -34,7 +34,7 @@ Mat Dip5::createFstDevKernel(double sigma){
 
 ```
 
-```
+```cpp
 void Dip5::getInterestPoints(Mat& img, double sigma, vector<KeyPoint>& points) {
   int kernelSize = (int) (ceil(3 * sigma) + 1) - (kernelSize % 2);
   Mat fstdevKernelX =  createFstDevKernel(0);
