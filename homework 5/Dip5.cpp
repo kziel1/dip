@@ -10,7 +10,7 @@
 
 // uses structure tensor to define interest points (foerstner)
 void Dip5::getInterestPoints(Mat& img, double sigma, vector<KeyPoint>& points){
-	// TO DO !!!
+	
 }
 
 // creates kernel representing fst derivative of a Gaussian kernel in x-direction
@@ -19,7 +19,20 @@ sigma	standard deviation of the Gaussian kernel
 return	the calculated kernel
 */
 Mat Dip5::createFstDevKernel(double sigma){
-	// TO DO !!!
+	int kernelSize = (int) ceil(3*sigma);
+	kernelSize += 1-kernelSize%2;
+	Mat gaussianKernelX = getGaussianKernel(kernelSize,sigma, CV_32FC1);
+	Mat gaussianKernelY = getGaussianKernel(kernelSize,sigma, CV_32FC1);
+	Mat gaussianKernel = gaussianKernelX*gaussianKernelY.t();
+	Mat fstKernel = Mat::ones(kernelSize, kernelSize, CV_32FC1);
+ 	for(int x=0;x<kernelSize;x++){
+ 		for(int y=0;y<kernelSize;y++){
+ 			int rx=x-kernelSize/2;
+ 			fstKernel.at<float>(x, y)=-rx*gaussianKernel.at<float>(x,y)/sigma/sigma;
+ 		}
+ 	}
+	//cout << "M = "<< endl << " "  << fstKernel << endl << endl;
+	return fstKernel;
 }
 
 /* *****************************
@@ -33,6 +46,7 @@ points	:	detected keypoints
 */
 void Dip5::run(Mat& in, vector<KeyPoint>& points){
    this->getInterestPoints(in, this->sigma, points);
+   Mat asd =  createFstDevKernel(2);
 }
 
 // non-maxima suppression
@@ -76,8 +90,8 @@ void Dip5::showImage(Mat& img, const char* win, int wait, bool show, bool save){
 
     // scale and convert
     if (img.channels() == 1)
-		normalize(aux, aux, 0, 255, CV_MINMAX);
-		aux.convertTo(aux, CV_8UC1);
+		//normalize(aux, aux, 0, 255, CV_MINMAX);
+		//aux.convertTo(aux, CV_8UC1);
     // show
     if (show){
       imshow( win, aux);
