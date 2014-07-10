@@ -10,7 +10,7 @@
 
 // uses structure tensor to define interest points (foerstner)
 void Dip5::getInterestPoints(Mat& img, double sigma, vector<KeyPoint>& points){
-	
+	Mat asd =  createFstDevKernel(2);
 }
 
 // creates kernel representing fst derivative of a Gaussian kernel in x-direction
@@ -19,6 +19,7 @@ sigma	standard deviation of the Gaussian kernel
 return	the calculated kernel
 */
 Mat Dip5::createFstDevKernel(double sigma){
+	sigma=this->sigma;
 	int kernelSize = (int) ceil(3*sigma);
 	kernelSize += 1-kernelSize%2;
 	Mat gaussianKernelX = getGaussianKernel(kernelSize,sigma, CV_32FC1);
@@ -31,7 +32,7 @@ Mat Dip5::createFstDevKernel(double sigma){
  			fstKernel.at<float>(x, y)=-rx*gaussianKernel.at<float>(x,y)/sigma/sigma;
  		}
  	}
-	//cout << "M = "<< endl << " "  << fstKernel << endl << endl;
+	//cout << "fstKernel = "<< endl << " "  << fstKernel << endl << endl;
 	return fstKernel;
 }
 
@@ -46,7 +47,6 @@ points	:	detected keypoints
 */
 void Dip5::run(Mat& in, vector<KeyPoint>& points){
    this->getInterestPoints(in, this->sigma, points);
-   Mat asd =  createFstDevKernel(2);
 }
 
 // non-maxima suppression
