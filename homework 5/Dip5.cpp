@@ -10,7 +10,44 @@
 
 // uses structure tensor to define interest points (foerstner)
 void Dip5::getInterestPoints(Mat& img, double sigma, vector<KeyPoint>& points){
-	Mat asd =  createFstDevKernel(2);
+	int kernelSize = (int) ceil(3*sigma) + 1-kernelSize%2;
+	Mat fstdevKernelX =  createFstDevKernel(0);
+	//cout << "fstKernel = "<< endl << " "  << fstdevKernelX << endl << endl;
+	Mat fstdevKernelY =  fstdevKernelX.t();
+	//cout << "fstKernel = "<< endl << " "  << fstdevKernelY << endl << endl;
+	Mat gradientsX;
+	filter2D(img, gradientsX, CV_32FC1, fstdevKernelX) ;
+	//showImage(gradientsX, "asd", 1, true, false);
+	Mat gradientsY;
+	filter2D(img, gradientsY, CV_32FC1, fstdevKernelY) ;
+	//showImage(gradientsY, "qwe", 0, true, false);
+	Mat structureTensor = Mat::zeros(2,2,CV_32FC1);
+	int i,j;
+	Mat plesseyHarrisDetector = Mat::zeros(img.rows,img.cols,CV_32FC1);
+	for(int x=kernelSize;x<img.rows-kernelSize;x++){
+ 		for(int y=kernelSize;y<img.cols-kernelSize;y++){
+structureTensor = Mat::zeros(2,2,CV_32FC1);
+ 			for(int xw=0;xw<kernelSize/2;xw++){
+ 				for(int yw=0;yw<kernelSize;yw++){
+ 					i=x+xw-kernelSize/2;
+ 					j=y+yw-kernelSize/2;
+					structureTensor.at<float>(0, 0)+=gradientsX.at<float>(i,j)*gradientsX.at<float>(i,j);
+ 					structureTensor.at<float>(1, 1)+=gradientsY.at<float>(i,j)*gradientsY.at<float>(i,j);
+ 					structureTensor.at<float>(1, 0)+=gradientsX.at<float>(i,j)*gradientsX.at<float>(i,j);
+ 				}
+ 			}
+ 			structureTensor.at<float>(0, 1)=structureTensor.at<float>(1, 0);
+			float structureTensorTrace = sum(trace(structureTensor))[0];
+ 			plesseyHarrisDetector.at<float>(x, y)=determinant(structureTensor)-0.04*structureTensorTrace*structureTensorTrace;
+ 			// cout<<trace<<endl;
+ 			if(abs(plesseyHarrisDetector.at<float>(x, y))>50000){
+ 				points.push_back(KeyPoint(x,y,1));
+ 			}
+ 		}
+ 	}
+
+// cout << "plesseyHarrisDetector = "<< endl << " "  << plesseyHarrisDetector << endl << endl;
+
 }
 
 // creates kernel representing fst derivative of a Gaussian kernel in x-direction
@@ -20,8 +57,7 @@ return	the calculated kernel
 */
 Mat Dip5::createFstDevKernel(double sigma){
 	sigma=this->sigma;
-	int kernelSize = (int) ceil(3*sigma);
-	kernelSize += 1-kernelSize%2;
+	int kernelSize = (int) ceil(3*sigma) + 1-kernelSize%2;
 	Mat gaussianKernelX = getGaussianKernel(kernelSize,sigma, CV_32FC1);
 	Mat gaussianKernelY = getGaussianKernel(kernelSize,sigma, CV_32FC1);
 	Mat gaussianKernel = gaussianKernelX*gaussianKernelY.t();
@@ -90,8 +126,8 @@ void Dip5::showImage(Mat& img, const char* win, int wait, bool show, bool save){
 
     // scale and convert
     if (img.channels() == 1)
-		//normalize(aux, aux, 0, 255, CV_MINMAX);
-		//aux.convertTo(aux, CV_8UC1);
+		normalize(aux, aux, 0, 255, CV_MINMAX);
+		aux.convertTo(aux, CV_8UC1);
     // show
     if (show){
       imshow( win, aux);
