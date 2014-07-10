@@ -17,10 +17,10 @@ void Dip5::getInterestPoints(Mat& img, double sigma, vector<KeyPoint>& points){
 	//cout << "fstKernel = "<< endl << " "  << fstdevKernelY << endl << endl;
 	Mat gradientsX;
 	filter2D(img, gradientsX, CV_32FC1, fstdevKernelX) ;
-	//showImage(gradientsX, "asd", 1, true, false);
+	// showImage(gradientsX, "asd", 1, true, false);
 	Mat gradientsY;
 	filter2D(img, gradientsY, CV_32FC1, fstdevKernelY) ;
-	//showImage(gradientsY, "qwe", 0, true, false);
+	// showImage(gradientsY, "qwe", 0, true, false);
 	Mat structureTensor = Mat::zeros(2,2,CV_32FC1);
 	int i,j;
 	Mat plesseyHarrisDetector = Mat::zeros(img.rows,img.cols,CV_32FC1);
@@ -33,21 +33,22 @@ structureTensor = Mat::zeros(2,2,CV_32FC1);
  					j=y+yw-kernelSize/2;
 					structureTensor.at<float>(0, 0)+=gradientsX.at<float>(i,j)*gradientsX.at<float>(i,j);
  					structureTensor.at<float>(1, 1)+=gradientsY.at<float>(i,j)*gradientsY.at<float>(i,j);
- 					structureTensor.at<float>(1, 0)+=gradientsX.at<float>(i,j)*gradientsX.at<float>(i,j);
+ 					structureTensor.at<float>(1, 0)+=gradientsX.at<float>(i,j)*gradientsY.at<float>(i,j);
  				}
  			}
  			structureTensor.at<float>(0, 1)=structureTensor.at<float>(1, 0);
 			float structureTensorTrace = sum(trace(structureTensor))[0];
  			plesseyHarrisDetector.at<float>(x, y)=determinant(structureTensor)-0.04*structureTensorTrace*structureTensorTrace;
- 			// cout<<trace<<endl;
- 			if(abs(plesseyHarrisDetector.at<float>(x, y))>50000){
- 				points.push_back(KeyPoint(x,y,1));
+ 		}
+ 	}
+ 	plesseyHarrisDetector = nonMaxSuppression(plesseyHarrisDetector);
+ 	for(int x=kernelSize;x<img.rows-kernelSize;x++){
+ 		for(int y=kernelSize;y<img.cols-kernelSize;y++){
+				if(abs(plesseyHarrisDetector.at<float>(x, y))>100000){
+ 				points.push_back(KeyPoint(y,x,5));
  			}
  		}
  	}
-
-// cout << "plesseyHarrisDetector = "<< endl << " "  << plesseyHarrisDetector << endl << endl;
-
 }
 
 // creates kernel representing fst derivative of a Gaussian kernel in x-direction
