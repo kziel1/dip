@@ -54,19 +54,18 @@ sigma	standard deviation of the Gaussian kernel
 return	the calculated kernel
 */
 Mat Dip5::createFstDevKernel(double sigma){
-	sigma=this->sigma;
-	int kernelSize = (int) ceil(3*sigma) + 1-kernelSize%2;
+	
+	sigma = this->sigma;
+	int kernelSize = (int) ceil(3 * sigma) + 1 - kernelSize % 2;
 	Mat gaussianKernelX = getGaussianKernel(kernelSize,sigma, CV_32FC1);
 	Mat gaussianKernelY = getGaussianKernel(kernelSize,sigma, CV_32FC1);
 	Mat gaussianKernel = gaussianKernelX*gaussianKernelY.t();
 	Mat fstKernel = Mat::ones(kernelSize, kernelSize, CV_32FC1);
- 	for(int x=0;x<kernelSize;x++){
- 		for(int y=0;y<kernelSize;y++){
- 			int rx=x-kernelSize/2;
- 			fstKernel.at<float>(x, y)=-rx*gaussianKernel.at<float>(x,y)/sigma/sigma;
- 		}
+ 	for (int x = 0; x < kernelSize; x++) for(int y = 0; y < kernelSize; y++) {
+		int rx=x-kernelSize / 2;
+		fstKernel.at<float>(x, y) =- rx * gaussianKernel.at<float>(x,y) / (sigma * sigma);
  	}
-	//cout << "fstKernel = "<< endl << " "  << fstKernel << endl << endl;
+
 	return fstKernel;
 }
 
