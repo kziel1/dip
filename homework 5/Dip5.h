@@ -32,7 +32,12 @@ class Dip5{
       // --> edit ONLY these functions!
       Mat createFstDevKernel(double sigma);
 	  void getInterestPoints(Mat& img, double sigma, vector<KeyPoint>& points);
-	  
+      Mat getWeights(Mat traces, Mat determinants);
+      Mat getDeterminants(Mat gradientsX, Mat gradientsY);
+      Mat getAvgGG(Mat gradients1, Mat gradients2);
+      Mat getTraces(Mat gradientsX, Mat gradientsY);
+	  Mat getIsotropys(Mat traces, Mat determinants);
+      bool hasNaN(Mat mat);
 	  // function headers of given functions
 	  Mat nonMaxSuppression(Mat& img);
 	  
