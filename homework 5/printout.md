@@ -75,7 +75,10 @@ void Dip5::getInterestPoints(Mat& img, double sigma, vector<KeyPoint>& points) {
 }
 ```
 
-### result
+### original
 ![Original](Lenna.png)
-![überarbeitet](keypoints.png)
+### sigma 0.5 [weights isotropy keypoints]
 ![points0.5](sigma 0.5.png)
+![points0.5](sigma 0.5.png)
+### sigma 2 [weights isotrop
+### sigma 2 [weights isotropy keypoints]
