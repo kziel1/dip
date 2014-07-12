@@ -169,10 +169,10 @@ Mat Dip5::createFstDevKernel(double sigma){
 ### original
 ![Original](Lenna.png)
 ### sigma 0.5 [weights isotropy keypoints]
-![weight0.5](sigma 0.5 weight.png)
-![isotropy0.5](sigma 0.5 isotropy.png)
-![points0.5](sigma 0.5.png)
+![weight0.5](sigma_0.5_weight.jpg)
+![isotropy0.5](sigma_0.5_isotropy.jpg)
+![points0.5](sigma_0.5.jpg)
 ### sigma 2 [weights isotropy keypoints]
-![weight2](sigma 2 weight.png.png)
-![isotropy2](sigma 2 isotropy.png.png)
-![points2](sigma 2.png)
+![weight2](sigma_2_weight.jpg)
+![isotropy2](sigma_2_isotropy.jpg)
+![points2](sigma_2.jpg)
