@@ -53,7 +53,6 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
 
   Mat tempA = Mat::zeros(degraded.size(), CV_32FC1);
   
-  // convert to frequency spectrum
   Mat degradedFreq = degraded.clone();
   Mat filterFreq = Mat::zeros(degraded.size(), CV_32F);
 
@@ -71,6 +70,7 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
   merge(planes, 2, degradedFreq);
   merge(planesFilter, 2, filterFreq);
 
+  // convert to frequency spectrum
   dft(degradedFreq, degradedFreq, DFT_COMPLEX_OUTPUT); // degradedFreq == S
   dft(filterFreq, filterFreq, DFT_COMPLEX_OUTPUT); // filterFreq == P
 
@@ -82,30 +82,37 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
   Mat Im = planes[1];
   
   // calculate Threshold
-  double thresholdFactor = 0.5, threshold;
+  double thresholdFactor = 0.05, threshold;
   double max = 0;
 
-  Re.copyTo(tempA);
-  abs(tempA);
-  minMaxIdx(tempA, 0, &max, 0, 0, Mat());
+  // find maximum
+  for (int x = 0; x < filterFreq.rows; x++) for (int y = 0; y < filterFreq.cols; y++) {
+    float resq = Re.at<float>(x, y) * Re.at<float>(x, y);
+    float imsq = Im.at<float>(x, y) * Im.at<float>(x, y);
+
+    float absreim = sqrt(resq + imsq);
+    if (absreim > max) {
+      max = absreim;
+    }
+  }
   
   threshold = thresholdFactor * max;
 
   for (int x = 0; x < filterFreq.rows; x++) for (int y = 0; y < filterFreq.cols; y++) {
+    
+    float resq = Re.at<float>(x, y) * Re.at<float>(x, y);
+    float imsq = Im.at<float>(x, y) * Im.at<float>(x, y);
 
-    if (Re.at<float>(x, y) >= threshold) {
+    float absreim = sqrt(resq + imsq);
 
-      float resq = Re.at<float>(x, y) * Re.at<float>(x, y);
-      float imsq = Im.at<float>(x, y) * Im.at<float>(x, y);
-
-      // complex numbers need special attention
+    if (absreim >= threshold) {
 
       Re.at<float>(x, y) = Re.at<float>(x, y) / (resq + imsq);
       Im.at<float>(x, y) = Im.at<float>(x, y) / (resq + imsq);
 
     } else {
-      Re.at<float>(x, y) = 1/threshold;
-      Im.at<float>(x, y) = 1/threshold;
+      Re.at<float>(x, y) = 0;
+      Im.at<float>(x, y) = 0;
     }
 
   }
@@ -128,6 +135,8 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
   } else {
     original.convertTo(original, CV_8UC3);
   }
+
+  normalize(original, original, 0, 255, CV_MINMAX);
  
   return original;
 }
