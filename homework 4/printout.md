@@ -1,7 +1,7 @@
 # Digital image processing
 This file was generated out of a markdown file using gitprint.com.
 
-## Homework 3
+## Homework 4
 
 **Group P** including:
 
@@ -12,6 +12,8 @@ This file was generated out of a markdown file using gitprint.com.
 
 ### Changes for the use of C++11
 Because we wanted to use `C++11`, we added `set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")` to the `CMakeCLists.txt`.
+
+### Results
 
 ![original](original.png "original")
 
