@@ -13,9 +13,6 @@ This file was generated out of a markdown file using gitprint.com.
 ### Changes for the use of C++11
 Because we wanted to use `C++11`, we added `set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")` to the `CMakeCLists.txt`.
 
-### Exercices
-The results of the filters do not look like that they are working correctly, I couldn't figure out why.
-
 ![original](original.png "original")
 
 ![degraded](degraded.png "degraded")

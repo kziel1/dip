@@ -128,15 +128,8 @@ Mat Dip4::inverseFilter(Mat& degraded, Mat& filter){
   split(original, planes);
 
   original = planes[0];
-
-  if (original.channels() == 1) {
-    normalize(original, original, 0, 255, CV_MINMAX);
-    original.convertTo(original, CV_8UC1);
-  } else {
-    original.convertTo(original, CV_8UC3);
-  }
-
   normalize(original, original, 0, 255, CV_MINMAX);
+  original.convertTo(original, CV_8UC1);
  
   return original;
 }
@@ -156,11 +149,15 @@ Mat Dip4::wienerFilter(Mat& degraded, Mat& filter, double snr){
    
   // Q_k = conjugate_transpose(P_k) / | P_k | ^2  + 1/SNR^2
 
-  Mat filterFreq = filter.clone();
+  Mat filterFreq = Mat(filter.size(), CV_32F);
+  
+  
   Mat planesFilter[] = {filterFreq, Mat::zeros(filterFreq.size(), CV_32F)};
+  
   merge(planesFilter, 2, filterFreq);
   
   dft(filterFreq, filterFreq, DFT_COMPLEX_OUTPUT); // filterFreq == P
+
 
   // create Q
 
@@ -175,15 +172,15 @@ Mat Dip4::wienerFilter(Mat& degraded, Mat& filter, double snr){
   for (int x = 0; x < filterFreq.rows; x++) for (int y = 0; y < filterFreq.cols; y++) {
 
     // A*_ij = Ã_ji
-    float reConjugateTranspose = filterFreq.at<float>(y, x);
-    float imConjugateTranspose = -filterFreq.at<float>(y, x);
+    float reConjugateTranspose = Re.at<float>(y, x);
+    float imConjugateTranspose = -Im.at<float>(y, x);
+
     float resq = Re.at<float>(x, y) * Re.at<float>(x, y);
     float imsq = Im.at<float>(x, y) * Im.at<float>(x, y);
-    float ReAbs = Re.at<float>(x, y) / (resq + imsq);
-    float ImAbs = Im.at<float>(x, y) / (resq + imsq);
+    float absreim = sqrt(resq + imsq);
 
-    QRe.at<float>(x, y) = reConjugateTranspose / ((ReAbs * ReAbs) + 1/(snr * snr));
-    QIm.at<float>(x, y) = imConjugateTranspose / ((ImAbs * ImAbs) + 1/(snr * snr));
+    QRe.at<float>(x, y) = reConjugateTranspose / (absreim * absreim + 1/(snr * snr));
+    QIm.at<float>(x, y) = imConjugateTranspose / (absreim * absreim + 1/(snr * snr));
 
   }
   
@@ -196,17 +193,10 @@ Mat Dip4::wienerFilter(Mat& degraded, Mat& filter, double snr){
   Mat original;
 
   dft(Q, Q, DFT_INVERSE + DFT_SCALE);
-  split(Q, planesFilter);
-  Q = planesFilter[0];
-
-  filter2D(degraded, original, -1, Q);
-
-  if (original.channels() == 1) {
-    normalize(original, original, 0, 255, CV_MINMAX);
-    original.convertTo(original, CV_8UC1);
-  } else {
-    original.convertTo(original, CV_8UC3);
-  }
+  split(Q, planes);
+  filter2D(degraded, original, -1, planes[0]);
+  normalize(original, original, 0, 255, CV_MINMAX);
+  original.convertTo(original, CV_8UC1);
 
   return original;
 
